@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Meme Generator</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f39c12;
+            --background-color: #f4f7f9;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+
+        .meme-editor {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .canvas-container {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        #memeCanvas {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+        }
+
+        .controls {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        input[type="file"],
+        input[type="text"],
+        input[type="color"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        input[type="color"] {
+            height: 40px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3a7bd5;
+        }
+
+        #download-btn {
+            background-color: var(--secondary-color);
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        #download-btn:hover {
+            background-color: #e67e22;
+        }
+
+        @media (max-width: 768px) {
+            .meme-editor {
+                flex-direction: column;
+            }
+
+            .canvas-container,
+            .controls {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Meme Generator</h1>
+        <div class="meme-editor">
+            <div class="canvas-container">
+                <canvas id="memeCanvas" width="500" height="500"></canvas>
+            </div>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="template-selector">Template:</label>
+                    <select id="template-selector">
+                        <option value="">None</option>
+                        <option value="drake">Drake Hotline Bling</option>
+                        <option value="distracted-boyfriend">Distracted Boyfriend</option>
+                        <option value="two-buttons">Two Buttons</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="upload-image">Background Image:</label>
+                    <input type="file" id="upload-image" accept="image/*">
+                </div>
+                <div class="control-group">
+                    <label for="overlay-image">Overlay Image:</label>
+                    <input type="file" id="overlay-image" accept="image/*">
+                </div>
+                <div class="control-group">
+                    <label for="shape-selector">Shape:</label>
+                    <select id="shape-selector">
+                        <option value="rectangle">Rectangle</option>
+                        <option value="circle">Circle</option>
+                        <option value="rounded">Rounded Rectangle</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="add-text">Add Text:</label>
+                    <input type="text" id="add-text" placeholder="Enter text">
+                    <button id="add-text-btn">Add Text</button>
+                </div>
+                <div class="control-group">
+                    <label for="text-color">Text Color:</label>
+                    <input type="color" id="text-color" value="#ffffff">
+                </div>
+                <div class="control-group">
+                    <label for="text-size">Text Size:</label>
+                    <input type="range" id="text-size" min="10" max="100" value="30">
+                </div>
+                <button id="download-btn">Download Meme</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('memeCanvas');
+        const ctx = canvas.getContext('2d');
+        let backgroundImg = null;
+        const overlayImages = [];
+        const texts = [];
+        let selectedElement = null;
+
+        // Predefined meme templates
+        const templates = {
+            'drake': 'https://i.imgflip.com/30b1gx.jpg',
+            'distracted-boyfriend': 'https://i.imgflip.com/1ur9b0.jpg',
+            'two-buttons': 'https://i.imgflip.com/1g8my4.jpg'
+        };
+
+        function drawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+
+            overlayImages.forEach(img => {
+                drawImageWithShape(img);
+            });
+
+            texts.forEach(text => {
+                ctx.fillStyle = text.color;
+                ctx.font = `${text.size}px Impact`;
+                ctx.textAlign = 'center';
+                ctx.fillText(text.content, text.x, text.y);
+            });
+        }
+
+        function drawImageWithShape(img) {
+            ctx.save();
+
+            const shape = img.shape || 'rectangle';
+            if (shape === 'circle') {
+                ctx.beginPath();
+                ctx.arc(img.x + img.width / 2, img.y + img.height / 2, img.width / 2, 0, Math.PI * 2);
+                ctx.clip();
+            } else if (shape === 'rounded') {
+                const radius = 20;
+                ctx.beginPath();
+                ctx.moveTo(img.x + radius, img.y);
+                ctx.lineTo(img.x + img.width - radius, img.y);
+                ctx.quadraticCurveTo(img.x + img.width, img.y, img.x + img.width, img.y + radius);
+                ctx.lineTo(img.x + img.width, img.y + img.height - radius);
+                ctx.quadraticCurveTo(img.x + img.width, img.y + img.height, img.x + img.width - radius, img.y + img.height);
+                ctx.lineTo(img.x + radius, img.y + img.height);
+                ctx.quadraticCurveTo(img.x, img.y + img.height, img.x, img.y + img.height - radius);
+                ctx.lineTo(img.x, img.y + radius);
+                ctx.quadraticCurveTo(img.x, img.y, img.x + radius, img.y);
+                ctx.closePath();
+                ctx.clip();
+            }
+            
+            ctx.drawImage(img.image, img.x, img.y, img.width, img.height);
+            ctx.restore();
+        }
+
+        function loadImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => callback(img);
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.getElementById('upload-image').addEventListener('change', (e) => {
+            loadImage(e.target.files[0], (img) => {
+                backgroundImg = img;
+                drawCanvas();
+            });
+        });
+
+        document.getElementById('overlay-image').addEventListener('change', (e) => {
+            loadImage(e.target.files[0], (img) => {
+                overlayImages.push({ image: img, x: 50, y: 50, width: 100, height: 100 });
+                drawCanvas();
+            });
+        });
+
+        document.getElementById('template-selector').addEventListener('change', (e) => {
+            const url = templates[e.target.value];
+            if (url) {
+                const img = new Image();
+                img.onload = () => {
+                    backgroundImg = img;
+                    drawCanvas();
+                };
+                img.src = url;
+            }
+        });
+
+        document.getElementById('add-text-btn').addEventListener('click', () => {
+            const content = document.getElementById('add-text').value;
+            if (content) {
+                texts.push({ content, x: canvas.width / 2, y: canvas.height / 2, size: 30, color: '#ffffff' });
+                drawCanvas();
+            }
+        });
+
+        document.getElementById('text-color').addEventListener('input', (e) => {
+            if (selectedElement && selectedElement.type === 'text') {
+                selectedElement.color = e.target.value;
+                drawCanvas();
+            }
+        });
+
+        document.getElementById('text-size').addEventListener('input', (e) => {
+            if (selectedElement && selectedElement.type === 'text') {
+                selectedElement.size = parseInt(e.target.value);
+                drawCanvas();
+            }
+        });
+
+        document.getElementById('shape-selector').addEventListener('change', (e) => {
+            if (selectedElement && selectedElement.type === 'image') {
+                selectedElement.shape = e.target.value;
+                drawCanvas();
+            }
+        });
+
+        let isDragging = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            const { offsetX, offsetY } = e;
+            selectedElement = null;
+            texts.forEach(text => {
+                if (
+                    offsetX > text.x - ctx.measureText(text.content).width / 2 &&
+                    offsetX < text.x + ctx.measureText(text.content).width / 2 &&
+                    offsetY > text.y - text.size &&
+                    offsetY < text.y
+                ) {
+                    selectedElement = text;
+                    selectedElement.type = 'text';
+                    isDragging = true;
+                }
+            });
+
+            overlayImages.forEach(img => {
+                if (
+                    offsetX > img.x && offsetX < img.x + img.width &&
+                    offsetY > img.y && offsetY < img.y + img.height
+                ) {
+                    selectedElement = img;
+                    selectedElement.type = 'image';
+                    isDragging = true;
+                }
+            });
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging && selectedElement) {
+                const { offsetX, offsetY } = e;
+                selectedElement.x = offsetX;
+                selectedElement.y = offsetY;
+                drawCanvas();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        document.getElementById('download-btn').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'meme.png';
+            link.click();
+        });
+    </script>
+</body>
+</html>
