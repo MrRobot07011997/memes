@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Advanced Meme Generator</title>
     <style>
         :root {
@@ -28,36 +28,35 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 100%;
             margin: 0 auto;
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 30px;
+            padding: 20px;
         }
 
         h1 {
             text-align: center;
             color: var(--primary-color);
-            margin-bottom: 30px;
-            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-size: 2rem;
         }
 
         .meme-editor {
             display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .canvas-container {
-            flex: 1;
-            min-width: 300px;
-            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
         #memeCanvas {
             width: 100%;
-            max-width: 500px;
             height: auto;
             border: 2px solid var(--border-color);
             border-radius: 10px;
@@ -65,12 +64,11 @@
         }
 
         .controls {
-            flex: 1;
-            min-width: 300px;
+            width: 100%;
         }
 
         .control-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         label {
@@ -111,6 +109,7 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            width: 100%;
         }
 
         button:hover {
@@ -119,24 +118,11 @@
 
         #download-btn {
             background-color: var(--secondary-color);
-            display: block;
-            width: 100%;
             margin-top: 20px;
         }
 
         #download-btn:hover {
             background-color: #e67e22;
-        }
-
-        @media (max-width: 768px) {
-            .meme-editor {
-                flex-direction: column;
-            }
-
-            .canvas-container,
-            .controls {
-                width: 100%;
-            }
         }
     </style>
 </head>
@@ -166,14 +152,6 @@
                     <input type="file" id="overlay-image" accept="image/*">
                 </div>
                 <div class="control-group">
-                    <label for="shape-selector">Shape:</label>
-                    <select id="shape-selector">
-                        <option value="rectangle">Rectangle</option>
-                        <option value="circle">Circle</option>
-                        <option value="rounded">Rounded Rectangle</option>
-                    </select>
-                </div>
-                <div class="control-group">
                     <label for="add-text">Add Text:</label>
                     <input type="text" id="add-text" placeholder="Enter text">
                     <button id="add-text-btn">Add Text</button>
@@ -185,14 +163,6 @@
                 <div class="control-group">
                     <label for="text-size">Text Size:</label>
                     <input type="range" id="text-size" min="10" max="100" value="30">
-                </div>
-                <div class="control-group">
-                    <label for="element-width">Element Width:</label>
-                    <input type="number" id="element-width" min="10" max="500" value="100">
-                </div>
-                <div class="control-group">
-                    <label for="element-height">Element Height:</label>
-                    <input type="number" id="element-height" min="10" max="500" value="100">
                 </div>
                 <button id="download-btn">Download Meme</button>
             </div>
@@ -219,51 +189,23 @@
             if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
 
             overlayImages.forEach(img => {
-                drawImageWithShape(img);
+                ctx.drawImage(img.image, img.x, img.y, img.width, img.height);
             });
 
             texts.forEach(text => {
                 ctx.fillStyle = text.color;
-                ctx.font = `${text.size}px Impact`;
+                ctx.font = `${text.size}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.fillText(text.content, text.x, text.y);
             });
         }
 
-        function drawImageWithShape(img) {
-            ctx.save();
-
-            const shape = img.shape || 'rectangle';
-            if (shape === 'circle') {
-                ctx.beginPath();
-                ctx.arc(img.x + img.width / 2, img.y + img.height / 2, img.width / 2, 0, Math.PI * 2);
-                ctx.clip();
-            } else if (shape === 'rounded') {
-                const radius = 20;
-                ctx.beginPath();
-                ctx.moveTo(img.x + radius, img.y);
-                ctx.lineTo(img.x + img.width - radius, img.y);
-                ctx.quadraticCurveTo(img.x + img.width, img.y, img.x + img.width, img.y + radius);
-                ctx.lineTo(img.x + img.width, img.y + img.height - radius);
-                ctx.quadraticCurveTo(img.x + img.width, img.y + img.height, img.x + img.width - radius, img.y + img.height);
-                ctx.lineTo(img.x + radius, img.y + img.height);
-                ctx.quadraticCurveTo(img.x, img.y + img.height, img.x, img.y + img.height - radius);
-                ctx.lineTo(img.x, img.y + radius);
-                ctx.quadraticCurveTo(img.x, img.y, img.x + radius, img.y);
-                ctx.closePath();
-                ctx.clip();
-            }
-            
-            ctx.drawImage(img.image, img.x, img.y, img.width, img.height);
-            ctx.restore();
-        }
-
         function loadImage(file, callback) {
             const reader = new FileReader();
-            reader.onload = () => {
+            reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => callback(img);
-                img.src = reader.result;
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -286,6 +228,7 @@
             const url = templates[e.target.value];
             if (url) {
                 const img = new Image();
+                img.crossOrigin = "anonymous";
                 img.onload = () => {
                     backgroundImg = img;
                     drawCanvas();
@@ -316,95 +259,88 @@
             }
         });
 
-        document.getElementById('shape-selector').addEventListener('change', (e) => {
-            if (selectedElement && selectedElement.type === 'image') {
-                selectedElement.shape = e.target.value;
-                drawCanvas();
-            }
-        });
-
-        document.getElementById('element-width').addEventListener('input', (e) => {
-            if (selectedElement) {
-                selectedElement.width = parseInt(e.target.value);
-                drawCanvas();
-            }
-        });
-
-        document.getElementById('element-height').addEventListener('input', (e) => {
-            if (selectedElement) {
-                selectedElement.height = parseInt(e.target.value);
-                drawCanvas();
-            }
-        });
-
         let isDragging = false;
         let lastX, lastY;
 
+        function getMousePos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+
+        function getTouchPos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (evt.touches[0].clientX - rect.left) * scaleX,
+                y: (evt.touches[0].clientY - rect.top) * scaleY
+            };
+        }
+
         function handleStart(e) {
             e.preventDefault();
-            const { clientX, clientY } = e.touches ? e.touches[0] : e;
-            const rect = canvas.getBoundingClientRect();
-            const x = clientX - rect.left;
-            const y = clientY - rect.top;
-
+            const pos = e.type.startsWith('touch') ? getTouchPos(canvas, e) : getMousePos(canvas, e);
+            
             selectedElement = null;
-            texts.forEach(text => {
+            for (let i = texts.length - 1; i >= 0; i--) {
+                const text = texts[i];
+                const textWidth = ctx.measureText(text.content).width;
                 if (
-                    x > text.x - ctx.measureText(text.content).width / 2 &&
-                    x < text.x + ctx.measureText(text.content).width / 2 &&
-                    y > text.y - text.size &&
-                    y < text.y
+                    pos.x > text.x - textWidth / 2 &&
+                    pos.x < text.x + textWidth / 2 &&
+                    pos.y > text.y - text.size &&
+                    pos.y < text.y
                 ) {
                     selectedElement = text;
                     selectedElement.type = 'text';
                     isDragging = true;
+                    break;
                 }
-            });
-
-            overlayImages.forEach(img => {
-                if (
-                    x > img.x && x < img.x + img.width &&
-                    y > img.y && y < img.y + img.height
-                ) {
-                    selectedElement = img;
-                    selectedElement.type = 'image';
-                    isDragging = true;
-                }
-            });
-
-            lastX = x;
-            lastY = y;
-
-            if (selectedElement) {
-                document.getElementById('text-color').value = selectedElement.color || '#ffffff';
-                document.getElementById('text-size').value = selectedElement.size || 30;
-                document.getElementById('element-width').value = selectedElement.width || 100;
-                document.getElementById('element-height').value = selectedElement.height || 100;
             }
+
+            if (!selectedElement) {
+                for (let i = overlayImages.length - 1; i >= 0; i--) {
+                    const img = overlayImages[i];
+                    if (
+                        pos.x > img.x && pos.x < img.x + img.width &&
+                        pos.y > img.y && pos.y < img.y + img.height
+                    ) {
+                        selectedElement = img;
+                        selectedElement.type = 'image';
+                        isDragging = true;
+                        break;
+                    }
+                }
+            }
+
+            lastX = pos.x;
+            lastY = pos.y;
         }
 
         function handleMove(e) {
             if (isDragging && selectedElement) {
                 e.preventDefault();
-                const { clientX, clientY } = e.touches ? e.touches[0] : e;
-                const rect = canvas.getBoundingClientRect();
-                const x = clientX - rect.left;
-                const y = clientY - rect.top;
-
-                const dx = x - lastX;
-                const dy = y - lastY;
+                const pos = e.type.startsWith('touch') ? getTouchPos(canvas, e) : getMousePos(canvas, e);
+                
+                const dx = pos.x - lastX;
+                const dy = pos.y - lastY;
 
                 selectedElement.x += dx;
                 selectedElement.y += dy;
 
-                lastX = x;
-                lastY = y;
+                lastX = pos.x;
+                lastY = pos.y;
 
                 drawCanvas();
             }
         }
 
-        function handleEnd() {
+        function handleEnd(e) {
             isDragging = false;
         }
 
@@ -421,6 +357,26 @@
             link.download = 'meme.png';
             link.click();
         });
+
+        // Initial canvas draw
+        drawCanvas();
+
+        // Prevent scrolling when touching the canvas
+        document.body.addEventListener("touchstart", function (e) {
+            if (e.target == canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        document.body.addEventListener("touchend", function (e) {
+            if (e.target == canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        document.body.addEventListener("touchmove", function (e) {
+            if (e.target == canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     </script>
 </body>
 </html>
