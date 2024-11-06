@@ -52,6 +52,7 @@
         .canvas-container {
             flex: 1;
             min-width: 300px;
+            position: relative;
         }
 
         #memeCanvas {
@@ -60,6 +61,7 @@
             height: auto;
             border: 2px solid var(--border-color);
             border-radius: 10px;
+            touch-action: none;
         }
 
         .controls {
@@ -81,6 +83,7 @@
         input[type="file"],
         input[type="text"],
         input[type="color"],
+        input[type="number"],
         select {
             width: 100%;
             padding: 10px;
@@ -182,6 +185,14 @@
                 <div class="control-group">
                     <label for="text-size">Text Size:</label>
                     <input type="range" id="text-size" min="10" max="100" value="30">
+                </div>
+                <div class="control-group">
+                    <label for="element-width">Element Width:</label>
+                    <input type="number" id="element-width" min="10" max="500" value="100">
+                </div>
+                <div class="control-group">
+                    <label for="element-height">Element Height:</label>
+                    <input type="number" id="element-height" min="10" max="500" value="100">
                 </div>
                 <button id="download-btn">Download Meme</button>
             </div>
@@ -312,17 +323,37 @@
             }
         });
 
-        let isDragging = false;
+        document.getElementById('element-width').addEventListener('input', (e) => {
+            if (selectedElement) {
+                selectedElement.width = parseInt(e.target.value);
+                drawCanvas();
+            }
+        });
 
-        canvas.addEventListener('mousedown', (e) => {
-            const { offsetX, offsetY } = e;
+        document.getElementById('element-height').addEventListener('input', (e) => {
+            if (selectedElement) {
+                selectedElement.height = parseInt(e.target.value);
+                drawCanvas();
+            }
+        });
+
+        let isDragging = false;
+        let lastX, lastY;
+
+        function handleStart(e) {
+            e.preventDefault();
+            const { clientX, clientY } = e.touches ? e.touches[0] : e;
+            const rect = canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+
             selectedElement = null;
             texts.forEach(text => {
                 if (
-                    offsetX > text.x - ctx.measureText(text.content).width / 2 &&
-                    offsetX < text.x + ctx.measureText(text.content).width / 2 &&
-                    offsetY > text.y - text.size &&
-                    offsetY < text.y
+                    x > text.x - ctx.measureText(text.content).width / 2 &&
+                    x < text.x + ctx.measureText(text.content).width / 2 &&
+                    y > text.y - text.size &&
+                    y < text.y
                 ) {
                     selectedElement = text;
                     selectedElement.type = 'text';
@@ -332,28 +363,57 @@
 
             overlayImages.forEach(img => {
                 if (
-                    offsetX > img.x && offsetX < img.x + img.width &&
-                    offsetY > img.y && offsetY < img.y + img.height
+                    x > img.x && x < img.x + img.width &&
+                    y > img.y && y < img.y + img.height
                 ) {
                     selectedElement = img;
                     selectedElement.type = 'image';
                     isDragging = true;
                 }
             });
-        });
 
-        canvas.addEventListener('mousemove', (e) => {
+            lastX = x;
+            lastY = y;
+
+            if (selectedElement) {
+                document.getElementById('text-color').value = selectedElement.color || '#ffffff';
+                document.getElementById('text-size').value = selectedElement.size || 30;
+                document.getElementById('element-width').value = selectedElement.width || 100;
+                document.getElementById('element-height').value = selectedElement.height || 100;
+            }
+        }
+
+        function handleMove(e) {
             if (isDragging && selectedElement) {
-                const { offsetX, offsetY } = e;
-                selectedElement.x = offsetX;
-                selectedElement.y = offsetY;
+                e.preventDefault();
+                const { clientX, clientY } = e.touches ? e.touches[0] : e;
+                const rect = canvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                const dx = x - lastX;
+                const dy = y - lastY;
+
+                selectedElement.x += dx;
+                selectedElement.y += dy;
+
+                lastX = x;
+                lastY = y;
+
                 drawCanvas();
             }
-        });
+        }
 
-        canvas.addEventListener('mouseup', () => {
+        function handleEnd() {
             isDragging = false;
-        });
+        }
+
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('mouseup', handleEnd);
+        canvas.addEventListener('touchstart', handleStart);
+        canvas.addEventListener('touchmove', handleMove);
+        canvas.addEventListener('touchend', handleEnd);
 
         document.getElementById('download-btn').addEventListener('click', () => {
             const link = document.createElement('a');
