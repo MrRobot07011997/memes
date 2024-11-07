@@ -3,168 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Advanced Meme Generator</title>
+    <title>GK Meme Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-color: #4a90e2;
-            --secondary-color: #f39c12;
-            --background-color: #f4f7f9;
-            --text-color: #333333;
-            --border-color: #e0e0e0;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--background-color);
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-        }
-
-        h1 {
-            text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            font-size: 2rem;
-        }
-
-        .meme-editor {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .canvas-container {
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        #memeCanvas {
-            width: 100%;
-            height: auto;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            touch-action: none;
-        }
-
-        .controls {
-            width: 100%;
-        }
-
-        .control-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        input[type="file"],
-        input[type="text"],
-        input[type="color"],
-        input[type="number"],
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
         input[type="color"] {
             height: 40px;
         }
 
-        input[type="range"] {
-            width: 100%;
-            margin-bottom: 10px;
+        .resize-handle {
+            width: 10px;
+            height: 10px;
+            background-color: #4299e1;
+            border: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 1000;
         }
 
-        button {
-            background-color: var(--primary-color);
-            color: #ffffff;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            width: 100%;
+        .resize-handle.nw { cursor: nw-resize; }
+        .resize-handle.ne { cursor: ne-resize; }
+        .resize-handle.sw { cursor: sw-resize; }
+        .resize-handle.se { cursor: se-resize; }
+
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
         }
 
-        button:hover {
-            background-color: #3a7bd5;
+        .control-panel {
+            background: linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
         }
 
-        #download-btn {
-            background-color: var(--secondary-color);
-            margin-top: 20px;
+        .canvas-container {
+            background: linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
         }
 
-        #download-btn:hover {
-            background-color: #e67e22;
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Advanced Meme Generator</h1>
-        <div class="meme-editor">
-            <div class="canvas-container">
-                <canvas id="memeCanvas" width="500" height="500"></canvas>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen p-4 md:p-8">
+    <div class="max-w-7xl mx-auto glass-morphism rounded-2xl shadow-2xl p-6 md:p-10">
+        <h1 class="text-3xl md:text-5xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-8">
+            The Meme Man
+        </h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Canvas Section -->
+            <div class="canvas-container rounded-xl p-6">
+                <div class="relative bg-gray-50 rounded-lg p-4 shadow-inner">
+                    <canvas id="memeCanvas" class="w-full h-auto border-2 border-gray-200 rounded-lg touch-none"></canvas>
+                </div>
+                <!-- Image Controls -->
+                <div class="mt-4 p-4 bg-white rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Selected Image Controls</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Width</label>
+                            <input type="number" id="image-width" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Height</label>
+                            <input type="number" id="image-height" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-600">Shape</label>
+                        <select id="image-shape" class="w-full px-3 py-2 border rounded-lg">
+                            <option value="rectangle">Rectangle</option>
+                            <option value="circle">Circle</option>
+                            <option value="triangle">Triangle</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="controls">
-                <div class="control-group">
-                    <label for="template-selector">Template:</label>
-                    <select id="template-selector">
+
+            <!-- Controls Section -->
+            <div class="control-panel rounded-xl p-6 space-y-6 custom-scroll max-h-[800px] overflow-y-auto">
+                <!-- Template Selector -->
+                <div class="control-group bg-white p-4 rounded-lg shadow-md">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-images mr-2"></i>Template:
+                    </label>
+                    <select id="template-selector" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                         <option value="">None</option>
                         <option value="drake">Drake Hotline Bling</option>
                         <option value="distracted-boyfriend">Distracted Boyfriend</option>
                         <option value="two-buttons">Two Buttons</option>
                     </select>
                 </div>
-                <div class="control-group">
-                    <label for="upload-image">Background Image:</label>
-                    <input type="file" id="upload-image" accept="image/*">
+
+                <!-- Image Upload -->
+                <div class="bg-white p-4 rounded-lg shadow-md space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-image mr-2"></i>Background Image:
+                        </label>
+                        <input type="file" id="upload-image" accept="image/*" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4
+                                      file:rounded-full file:border-0 file:text-sm file:font-semibold
+                                      file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-object-group mr-2"></i>Overlay Image:
+                        </label>
+                        <input type="file" id="overlay-image" accept="image/*"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4
+                                      file:rounded-full file:border-0 file:text-sm file:font-semibold
+                                      file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
                 </div>
-                <div class="control-group">
-                    <label for="overlay-image">Overlay Image:</label>
-                    <input type="file" id="overlay-image" accept="image/*">
+
+                <!-- Text Controls -->
+                <div class="bg-white p-4 rounded-lg shadow-md space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-font mr-2"></i>Add Text:
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="text" id="add-text" placeholder="Enter text" 
+                                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <button id="add-text-btn" 
+                                    class="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg">
+                                <i class="fas fa-plus mr-2"></i>Add
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-palette mr-2"></i>Text Color:
+                        </label>
+                        <input type="color" id="text-color" value="#ffffff" 
+                               class="w-full rounded-lg border border-gray-300">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-text-height mr-2"></i>Text Size:
+                        </label>
+                        <input type="range" id="text-size" min="10" max="100" value="30"
+                               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-sm text-gray-500 mt-1">
+                            <span>10px</span>
+                            <span>100px</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="control-group">
-                    <label for="add-text">Add Text:</label>
-                    <input type="text" id="add-text" placeholder="Enter text">
-                    <button id="add-text-btn">Add Text</button>
-                </div>
-                <div class="control-group">
-                    <label for="text-color">Text Color:</label>
-                    <input type="color" id="text-color" value="#ffffff">
-                </div>
-                <div class="control-group">
-                    <label for="text-size">Text Size:</label>
-                    <input type="range" id="text-size" min="10" max="100" value="30">
-                </div>
-                <button id="download-btn">Download Meme</button>
+
+                <!-- Download Button -->
+                <button id="download-btn" 
+                        class="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg font-medium">
+                    <i class="fas fa-download mr-2"></i>Download Meme
+                </button>
+
+                <!-- Reset Button -->
+                <button id="reset-btn" 
+                        class="w-full px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-md hover:shadow-lg font-medium">
+                    <i class="fas fa-undo mr-2"></i>Reset
+                </button>
             </div>
         </div>
     </div>
@@ -173,11 +197,18 @@
         const canvas = document.getElementById('memeCanvas');
         const ctx = canvas.getContext('2d');
         let backgroundImg = null;
-        const overlayImages = [];
-        const texts = [];
+        let overlayImages = [];
+        let texts = [];
         let selectedElement = null;
+        let resizing = false;
+        let resizeHandle = null;
+        let draggedElement = null;
+        let isDragging = false;
 
-        // Predefined meme templates
+        // Set canvas size
+        canvas.width = 500;
+        canvas.height = 500;
+
         const templates = {
             'drake': 'https://i.imgflip.com/30b1gx.jpg',
             'distracted-boyfriend': 'https://i.imgflip.com/1ur9b0.jpg',
@@ -186,18 +217,119 @@
 
         function drawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background with subtle gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#f8fafc');
+            gradient.addColorStop(1, '#f1f5f9');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
             if (backgroundImg) ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
 
             overlayImages.forEach(img => {
+                ctx.save();
+                ctx.beginPath();
+                
+                switch(img.shape) {
+                    case 'circle':
+                        ctx.arc(img.x + img.width / 2, img.y + img.height / 2, img.width / 2, 0, Math.PI * 2);
+                        ctx.clip();
+                        break;
+                    case 'triangle':
+                        ctx.moveTo(img.x + img.width / 2, img.y);
+                        ctx.lineTo(img.x, img.y + img.height);
+                        ctx.lineTo(img.x + img.width, img.y + img.height);
+                        ctx.closePath();
+                        ctx.clip();
+                        break;
+                    default:
+                        // Rectangle is default, no clipping needed
+                }
+                
                 ctx.drawImage(img.image, img.x, img.y, img.width, img.height);
+                ctx.restore();
+                
+                if (selectedElement === img) {
+                    drawResizeHandles(img);
+                }
             });
 
             texts.forEach(text => {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+
                 ctx.fillStyle = text.color;
                 ctx.font = `${text.size}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.fillText(text.content, text.x, text.y);
+
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
             });
+        }
+
+        function drawResizeHandles(img) {
+            const handles = [
+                { x: img.x, y: img.y, cursor: 'nw-resize' },
+                { x: img.x + img.width, y: img.y, cursor: 'ne-resize' },
+                { x: img.x, y: img.y + img.height, cursor: 'sw-resize' },
+                { x: img.x + img.width, y: img.y + img.height, cursor: 'se-resize' }
+            ];
+
+            handles.forEach(handle => {
+                ctx.fillStyle = '#4299e1';
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(handle.x, handle.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            });
+        }
+
+        function getResizeHandle(x, y) {
+            if (!selectedElement || !('width' in selectedElement)) return null;
+
+            const handles = [
+                { x: selectedElement.x, y: selectedElement.y, cursor: 'nw-resize' },
+                { x: selectedElement.x + selectedElement.width, y: selectedElement.y, cursor: 'ne-resize' },
+                { x: selectedElement.x, y: selectedElement.y + selectedElement.height, cursor: 'sw-resize' },
+                { x: selectedElement.x + selectedElement.width, y: selectedElement.y + selectedElement.height, cursor: 'se-resize' }
+            ];
+
+            for (let handle of handles) {
+                if (Math.abs(x - handle.x) < 10 && Math.abs(y - handle.y) < 10) {
+                    return handle.cursor;
+                }
+            }
+            return null;
+        }
+
+        function updateImageControls() {
+            const widthInput = document.getElementById('image-width');
+            const heightInput = document.getElementById('image-height');
+            const shapeSelect = document.getElementById('image-shape');
+
+            if (selectedElement && 'width' in selectedElement) {
+                widthInput.value = Math.round(selectedElement.width);
+                heightInput.value = Math.round(selectedElement.height);
+                shapeSelect.value = selectedElement.shape;
+                widthInput.disabled = false;
+                heightInput.disabled = false;
+                shapeSelect.disabled = false;
+            } else {
+                widthInput.value = '';
+                heightInput.value = '';
+                shapeSelect.value = 'rectangle';
+                widthInput.disabled = true;
+                heightInput.disabled = true;
+                shapeSelect.disabled = true;
+            }
         }
 
         function loadImage(file, callback) {
@@ -219,164 +351,196 @@
 
         document.getElementById('overlay-image').addEventListener('change', (e) => {
             loadImage(e.target.files[0], (img) => {
-                overlayImages.push({ image: img, x: 50, y: 50, width: 100, height: 100 });
+                overlayImages.push({ 
+                    image: img, 
+                    x: 50, 
+                    y: 50, 
+                    width: 100, 
+                    height: 100,
+                    shape: 'rectangle'
+                });
                 drawCanvas();
             });
         });
 
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const resizeHandleType = getResizeHandle(x, y);
+            if (resizeHandleType) {
+                resizing = true;
+                resizeHandle = resizeHandleType;
+                return;
+            }
+
+            selectedElement = [...overlayImages, ...texts].find(el => {
+                if ('width' in el) {
+                    return x >= el.x && x <= el.x + el.width && y >= el.y && y <= el.y + el.height;
+                } else {
+                    const textWidth = ctx.measureText(el.content).width;
+                    return x >= el.x - textWidth / 2 && x <= el.x + textWidth / 2 && y >= el.y - el.size && y <= el.y;
+                }
+            });
+
+            if (selectedElement) {
+                draggedElement = selectedElement;
+                draggedElement.startX = x;
+                draggedElement.startY = y;
+                isDragging = true;
+            }
+
+            updateImageControls();
+            drawCanvas();
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (resizing && selectedElement && 'width' in selectedElement) {
+                const dx = x - (selectedElement.x + selectedElement.width / 2);
+                const dy = y - (selectedElement.y + selectedElement.height / 2);
+
+                let newWidth = selectedElement.width;
+                let newHeight = selectedElement.height;
+
+                switch (resizeHandle) {
+                    case 'nw-resize':
+                        newWidth -= dx * 2;
+                        newHeight -= dy * 2;
+                        break;
+                    case 'ne-resize':
+                        newWidth += dx * 2;
+                        newHeight -= dy * 2;
+                        break;
+                    case 'sw-resize':
+                        newWidth -= dx * 2;
+                        newHeight += dy * 2;
+                        break;
+                    case 'se-resize':
+                        newWidth += dx * 2;
+                        newHeight += dy * 2;
+                        break;
+                }
+
+                selectedElement.width = Math.max(20, newWidth);
+                selectedElement.height = Math.max(20, newHeight);
+                updateImageControls();
+                drawCanvas();
+            } else if (isDragging && draggedElement) {
+                const dx = x - draggedElement.startX;
+                const dy = y - draggedElement.startY;
+
+                draggedElement.x += dx;
+                draggedElement.y += dy;
+
+                draggedElement.startX = x;
+                draggedElement.startY = y;
+
+                drawCanvas();
+            } else {
+                const resizeHandle = getResizeHandle(x, y);
+                canvas.style.cursor = resizeHandle || 'default';
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            resizing = false;
+            resizeHandle = null;
+            draggedElement = null;
+            isDragging = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            resizing = false;
+            resizeHandle = null;
+            draggedElement = null;
+            isDragging = false;
+        });
+
         document.getElementById('template-selector').addEventListener('change', (e) => {
-            const url = templates[e.target.value];
-            if (url) {
+            if (e.target.value in templates) {
                 const img = new Image();
-                img.crossOrigin = "anonymous";
                 img.onload = () => {
                     backgroundImg = img;
                     drawCanvas();
                 };
-                img.src = url;
+                img.src = templates[e.target.value];
+                selectedElement = null;
             }
         });
 
         document.getElementById('add-text-btn').addEventListener('click', () => {
-            const content = document.getElementById('add-text').value;
-            if (content) {
-                texts.push({ content, x: canvas.width / 2, y: canvas.height / 2, size: 30, color: '#ffffff' });
-                drawCanvas();
-            }
+            const textInput = document.getElementById('add-text');
+            const newText = {
+                content: textInput.value || "New Text",
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                color: document.getElementById('text-color').value,
+                size: parseInt(document.getElementById('text-size').value)
+            };
+            texts.push(newText);
+            selectedElement = newText;
+            drawCanvas();
         });
 
-        document.getElementById('text-color').addEventListener('input', (e) => {
-            if (selectedElement && selectedElement.type === 'text') {
+        document.getElementById('text-color').addEventListener('change', (e) => {
+            if (selectedElement && !('width' in selectedElement)) {
                 selectedElement.color = e.target.value;
                 drawCanvas();
             }
         });
 
         document.getElementById('text-size').addEventListener('input', (e) => {
-            if (selectedElement && selectedElement.type === 'text') {
+            if (selectedElement && !('width' in selectedElement)) {
                 selectedElement.size = parseInt(e.target.value);
                 drawCanvas();
             }
         });
 
-        let isDragging = false;
-        let lastX, lastY;
-
-        function getMousePos(canvas, evt) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            return {
-                x: (evt.clientX - rect.left) * scaleX,
-                y: (evt.clientY - rect.top) * scaleY
-            };
-        }
-
-        function getTouchPos(canvas, evt) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            return {
-                x: (evt.touches[0].clientX - rect.left) * scaleX,
-                y: (evt.touches[0].clientY - rect.top) * scaleY
-            };
-        }
-
-        function handleStart(e) {
-            e.preventDefault();
-            const pos = e.type.startsWith('touch') ? getTouchPos(canvas, e) : getMousePos(canvas, e);
-            
-            selectedElement = null;
-            for (let i = texts.length - 1; i >= 0; i--) {
-                const text = texts[i];
-                const textWidth = ctx.measureText(text.content).width;
-                if (
-                    pos.x > text.x - textWidth / 2 &&
-                    pos.x < text.x + textWidth / 2 &&
-                    pos.y > text.y - text.size &&
-                    pos.y < text.y
-                ) {
-                    selectedElement = text;
-                    selectedElement.type = 'text';
-                    isDragging = true;
-                    break;
-                }
-            }
-
-            if (!selectedElement) {
-                for (let i = overlayImages.length - 1; i >= 0; i--) {
-                    const img = overlayImages[i];
-                    if (
-                        pos.x > img.x && pos.x < img.x + img.width &&
-                        pos.y > img.y && pos.y < img.y + img.height
-                    ) {
-                        selectedElement = img;
-                        selectedElement.type = 'image';
-                        isDragging = true;
-                        break;
-                    }
-                }
-            }
-
-            lastX = pos.x;
-            lastY = pos.y;
-        }
-
-        function handleMove(e) {
-            if (isDragging && selectedElement) {
-                e.preventDefault();
-                const pos = e.type.startsWith('touch') ? getTouchPos(canvas, e) : getMousePos(canvas, e);
-                
-                const dx = pos.x - lastX;
-                const dy = pos.y - lastY;
-
-                selectedElement.x += dx;
-                selectedElement.y += dy;
-
-                lastX = pos.x;
-                lastY = pos.y;
-
+        document.getElementById('image-width').addEventListener('change', (e) => {
+            if (selectedElement && 'width' in selectedElement) {
+                selectedElement.width = parseInt(e.target.value);
                 drawCanvas();
             }
-        }
+        });
 
-        function handleEnd(e) {
-            isDragging = false;
-        }
+        document.getElementById('image-height').addEventListener('change', (e) => {
+            if (selectedElement && 'height' in selectedElement) {
+                selectedElement.height = parseInt(e.target.value);
+                drawCanvas();
+            }
+        });
 
-        canvas.addEventListener('mousedown', handleStart);
-        canvas.addEventListener('mousemove', handleMove);
-        canvas.addEventListener('mouseup', handleEnd);
-        canvas.addEventListener('touchstart', handleStart);
-        canvas.addEventListener('touchmove', handleMove);
-        canvas.addEventListener('touchend', handleEnd);
+        document.getElementById('image-shape').addEventListener('change', (e) => {
+            if (selectedElement && 'shape' in selectedElement) {
+                selectedElement.shape = e.target.value;
+                drawCanvas();
+            }
+        });
 
         document.getElementById('download-btn').addEventListener('click', () => {
             const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
             link.download = 'meme.png';
+            link.href = canvas.toDataURL();
             link.click();
         });
 
-        // Initial canvas draw
-        drawCanvas();
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            // Clear the canvas and reset all variables
+            backgroundImg = null;
+            overlayImages = [];
+            texts = [];
+            selectedElement = null;
+            drawCanvas(); // Redraw the empty canvas
+            updateImageControls(); // Reset controls
+        });
 
-        // Prevent scrolling when touching the canvas
-        document.body.addEventListener("touchstart", function (e) {
-            if (e.target == canvas) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-        document.body.addEventListener("touchend", function (e) {
-            if (e.target == canvas) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-        document.body.addEventListener("touchmove", function (e) {
-            if (e.target == canvas) {
-                e.preventDefault();
-            }
-        }, { passive: false });
+        // Initial draw
+        drawCanvas();
     </script>
 </body>
 </html>
